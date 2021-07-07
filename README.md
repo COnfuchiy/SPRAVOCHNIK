@@ -95,12 +95,12 @@ The routes available are:
 }
 ```
 
-##### Records Structure
-**Users**
+### Records Structure
+#### User
 ```json
 {
     "type": "users",
-    "id": 4,
+    "id": 11,
     "attributes": {
         "user_id": 11,
         "user_login": "stalin",
@@ -108,72 +108,54 @@ The routes available are:
         "user_last_date": "2021-07-07T13:14:54+03:00"
     },
     "links": {
-        "self": "https:\/\/example.com\/api\/1.1\/users\/1"
+        "self": "https:\/\/example.com\/api\/1.1\/users\/11"
     }
 }
 ```
-**Nodes**
+#### Nodes
 ```json
 {
-    "jsonapi": {
-        "version": "1.0"
+    "type": "nodes",
+    "id": 12,
+    "attributes": {
+        "node_id": 12,
+        "user_id": 411,
+        "node_name": "Yuri",
+        "node_last_name": "Gagarin",
+        "node_patronymic": "Alekseevich",
+        "node_company": "SSSR",
+        "node_phone": "663362",
+        "node_email": "-",
+        "node_create_date": "2021-07-07T13:27:09+03:00",
+        "node_update_date": "2021-07-07T13:27:09+03:00",
+        "is_public": true
     },
-    "data": [{
-        "type": "nodes",
-        "id": 12,
-        "attributes": {
-            "node_id": 12,
-            "user_id": 411,
-            "node_name": "Yuri",
-            "node_last_name": "Gagarin",
-            "node_patronymic": "Alekseevich",
-            "node_company": "SSSR",
-            "node_phone": "663362",
-            "node_email": "-",
-            "node_create_date": "2021-07-07T13:27:09+03:00",
-            "node_update_date": "2021-07-07T13:27:09+03:00",
-            "is_public": true
-        },
-        "links": {
-            "self": "https:\/\/example.com\/api\/1.1\/nodes\/12"
-        }
-    }],
-    "meta": {
-        "timestamp": "2021-07-07T13:27:09+03:00",
-        "hash": "71bb7927913dd33e486da155dadef3b6ec2eda6f"
+    "links": {
+        "self": "https:\/\/example.com\/api\/1.1\/nodes\/12"
     }
 }
 ```
-**Addresses**
+#### Addresses
 ```json
 {
-    "jsonapi": {
-        "version": "1.0"
+    "type": "addresses",
+    "id": 51,
+    "attributes": {
+        "address_id" : 51,
+        "node_id" : 11,
+        "address_name": "Job", 
+        "address_country":"Russia",  
+        "address_region":"Moscow oblast", 
+        "address_city" :"Moscow",
+        "address_street" :"Lenina",
+        "address_house" :7,
+        "address_entrance" :3,
+        "address_apartment" :43,
+        "address_create_date":"2021-07-07T13:27:09+03:00",
+        "address_update_date":"2021-07-07T13:27:09+03:00"
     },
-    "data": [{
-        "type": "addresses",
-        "id": 51,
-        "attributes": {
-            "address_id" : 51,
-            "node_id" : 11,
-            "address_name": "Job", 
-            "address_country":"Russia",  
-            "address_region":"Moscow oblast", 
-            "address_city" :"Moscow",
-            "address_street" :"Lenina",
-            "address_house" :7,
-            "address_entrance" :3,
-            "address_apartment" :43,
-            "address_create_date":"2021-07-07T13:27:09+03:00",
-            "address_update_date":"2021-07-07T13:27:09+03:00"
-        },
-        "links": {
-            "self": "https:\/\/example.com\/api\/1.1\/addresses\/51"
-        }
-    }],
-    "meta": {
-        "timestamp": "2021-07-07T13:27:09+03:00",
-        "hash": "71bb7927913dd33e486da155dadef3b6ec2eda6f"
+    "links": {
+        "self": "https:\/\/example.com\/api\/1.1\/addresses\/51"
     }
 }
 ```

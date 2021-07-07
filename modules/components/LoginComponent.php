@@ -24,31 +24,35 @@ class LoginComponent
         return self::CheckUserData(function ($data) {
             try {
                 $user = Users::findUserByLogin($data->userLogin);
+                if ($user) {
+                    if (password_verify($data->userPassword, $user->user_passwd)) {
+                        $newUserLastDate = time();
+                        $user->user_last_date = $newUserLastDate;
+                        if ($user->update()) {
+                            $currentTimestamp = new DateTimeImmutable();
+                            $jwt = JwtHelper::CreateJwtToken($currentTimestamp->getTimestamp(), $user->user_id, $user->user_login, $newUserLastDate);
+                            return ApiHelper::createSuccessResponse(
+                                [
+                                    "token" => $jwt,
+                                    "userId" => $user->user_id,
+                                    "setIn" => date('c', $currentTimestamp->getTimestamp()),
+                                    "expiresIn" => date('c', $currentTimestamp->getTimestamp() + ConfigJwt::$exp)
+                                ],
+                                ApiHelper::ACCEPTED
+                            );
+                        }
+                        $messages = $user->getMessages();
+                        return ApiHelper::createErrorResponse(
+                            ApiHelper::INTERNAL_SERVER_ERROR, $messages);
+                    }
+                    return ApiHelper::createRequestErrorResponse("Incorrect username or password");
+                }
+                return ApiHelper::createErrorResponse(
+                    ApiHelper::NOT_FOUND, ["No find user in database"]);
             } catch (Exception $exception) {
                 return ApiHelper::createErrorResponse(
                     ApiHelper::INTERNAL_SERVER_ERROR, [$exception->getMessage()]);
             }
-            if ($user && password_verify($data->userPassword, $user->user_passwd)) {
-                $newUserLastDate = time();
-                $user->user_last_date = $newUserLastDate;
-                if ($user->update()) {
-                    $currentTimestamp = new DateTimeImmutable();
-                    $jwt = JwtHelper::CreateJwtToken($currentTimestamp->getTimestamp(), $user->user_id, $user->user_login, $newUserLastDate);
-                    return ApiHelper::createSuccessResponse(
-                        [
-                            "token" => $jwt,
-                            "userId" => $user->user_id,
-                            "setIn" => date('c', $currentTimestamp->getTimestamp()),
-                            "expiresIn" => date('c', $currentTimestamp->getTimestamp() + ConfigJwt::$exp)
-                        ],
-                        ApiHelper::ACCEPTED
-                    );
-                }
-                $messages = $user->getMessages();
-                return ApiHelper::createErrorResponse(
-                    ApiHelper::INTERNAL_SERVER_ERROR, $messages);
-            }
-            return ApiHelper::createRequestErrorResponse("Incorrect username or password");
         });
     }
 
@@ -57,25 +61,27 @@ class LoginComponent
         return self::CheckUserData(function ($data) {
             try {
                 $user = Users::findUserByLogin($data->userLogin);
+                if (!$user) {
+                    $newUser = new Users();
+                    $timestamp = time();
+                    $newUser->user_login = $data->userLogin;
+                    $newUser->user_passwd = password_hash($data->userPassword, PASSWORD_BCRYPT);
+                    $newUser->user_reg_date = $timestamp;
+                    $newUser->user_last_date = $timestamp;
+                    if ($newUser->create()) {
+                        return ApiHelper::createSuccessResponse(
+                            ApiHelper::userApiJsonSerialize($newUser),
+                            ApiHelper::CREATED);
+                    }
+                    $messages = $user->getMessages();
+                    return ApiHelper::createErrorResponse(
+                        ApiHelper::INTERNAL_SERVER_ERROR, $messages);
+                }
+                return ApiHelper::createRequestErrorResponse("User already exist");
             } catch (Exception $exception) {
                 return ApiHelper::createErrorResponse(
                     ApiHelper::INTERNAL_SERVER_ERROR, [$exception->getMessage()]);
             }
-            if (!$user) {
-                $newUser = new Users();
-                $timestamp = time();
-                $newUser->user_login = $data->userLogin;
-                $newUser->user_passwd = password_hash($data->userPassword, PASSWORD_BCRYPT);
-                $newUser->user_reg_date = $timestamp;
-                $newUser->user_last_date = $timestamp;
-                if ($newUser->create()) {
-                    return ApiHelper::createSuccessResponse([], ApiHelper::CREATED);
-                }
-                $messages = $user->getMessages();
-                return ApiHelper::createErrorResponse(
-                    ApiHelper::INTERNAL_SERVER_ERROR, $messages);
-            }
-            return ApiHelper::createRequestErrorResponse("User already exist");
         });
     }
 
