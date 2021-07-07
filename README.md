@@ -17,7 +17,7 @@ Stable api version is `1.1`. Use `https://example.com/api/1.1/`
 #### Requests
 The routes available are:
 
-**NOTE** `{Id}` in route replace by Id respective entity. `0` may have special meaning, see [WiKi](/wiki)  
+**NOTE** `{Id}` in route replace by Id respective entity. `0` may have special meaning, see [WiKi](https://github.com/COnfuchiy/SPRAVOCHNIK/wiki)  
 
 | Method  | Route                     | Parameters                 | Action                                      |
 |---------|---------------------------|----------------------------|---------------------------------------------|
