@@ -1,4 +1,5 @@
 <?php
+
 use Phalcon\Mvc\Model;
 
 class Addresses extends Model
@@ -18,31 +19,25 @@ class Addresses extends Model
 
     public static function findAddressById(int $addressId)
     {
-        try {
-            $result = Addresses::findFirstByAddressId($addressId);
-            if ($result) {
-                return $result;
-            }
-        } catch (Exception $exception) {
+        $result = Addresses::findFirstByAddressId($addressId);
+        if ($result) {
+            return $result;
         }
         return false;
     }
 
     public static function findAddressesByNodeId(int $nodeId, int $pageSize = 0, int $pageNum = 0)
     {
-        try {
-            if ($pageSize && $pageNum) {
-                $results = Addresses::findByNodeId($nodeId, [
-                        'limit' => $pageSize,
-                        'offset' => ($pageNum - 1) * $pageSize]
-                );
-            } else {
-                $results = Nodes::findByNodeId($nodeId);
-            }
-            if ($results) {
-                return $results;
-            }
-        } catch (Exception $exception) {
+        if ($pageSize && $pageNum) {
+            $results = Addresses::findByNodeId($nodeId, [
+                    'limit' => $pageSize,
+                    'offset' => ($pageNum - 1) * $pageSize]
+            );
+        } else {
+            $results = Nodes::findByNodeId($nodeId);
+        }
+        if ($results) {
+            return $results;
         }
         return false;
     }

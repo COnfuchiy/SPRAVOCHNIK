@@ -30,10 +30,10 @@ $container->set(
     function () {
         return new Postgresql(
             [
-                'host'     => 'localhost',
-                'username' => 'postgres',
-                'password' => 'postgres',
-                'dbname'   => 'postgres',
+                'host'     => '',
+                'username' => '',
+                'password' => '',
+                'dbname'   => '',
             ]
         );
     }
@@ -61,7 +61,7 @@ $app->post(
 $app->get(
     ApiRoutesHelper::USER_BY_ID,
     function ($id) use ($app){
-        return ApiHandler::getUserDataById($id);
+        return ApiHandler::getUserById($id);
     }
 );
 
@@ -91,11 +91,11 @@ $app->post(
     }
 );
 
-// PUT update current user data (password)
-$app->put(
+// PATCH update current user data (password)
+$app->patch(
     ApiRoutesHelper::USER_BY_ID,
     function ($id) use ($app){
-        return ApiHandler::updateUserById($id);
+        return ApiHandler::updateUser($id);
     }
 );
 
@@ -119,23 +119,23 @@ $app->get(
 $app->get(
     ApiRoutesHelper::NODE_BY_ID,
     function ($id) use ($app){
-        return ApiHandler::getNodeDataById($id);
+        return ApiHandler::getNode($id);
     }
 );
 
 // POST create new node
 $app->post(
     ApiRoutesHelper::NODES_BASE_TEMPLATE,
-    function ($id) use ($app){
-        return ApiHandler::updateUserById($id);
+    function () use ($app){
+        return ApiHandler::createNode();
     }
 );
 
-// PUT update node (if node belong current user)
-$app->put(
+// PATCH update node (if node belong current user)
+$app->patch(
     ApiRoutesHelper::NODE_BY_ID,
     function ($id) use ($app){
-        return ApiHandler::updateUserById($id);
+        return ApiHandler::updateNode($id);
     }
 );
 
@@ -143,70 +143,70 @@ $app->put(
 $app->delete(
     ApiRoutesHelper::NODE_BY_ID,
     function ($id) use ($app){
-        return ApiHandler::updateUserById($id);
+        return ApiHandler::deleteNode($id);
     }
 );
 
 // GET all public nodes
 $app->get(
     ApiRoutesHelper::NODES_PUBLIC,
-    function ($id) use ($app){
-        return ApiHandler::updateUserById($id);
+    function () use ($app){
+        return ApiHandler::getAllPublicNodes();
     }
 );
 // GET all public nodes with pagination
 $app->get(
     ApiRoutesHelper::NODES_PUBLIC_WITH_PAGINATION,
-    function ($id) use ($app){
-        return ApiHandler::updateUserById($id);
+    function ($pageSize, $pageNum) use ($app){
+        return ApiHandler::getAllPublicNodes($pageSize, $pageNum);
     }
 );
 
-// GET all node addresses
+// GET all node addresses (if node belong current user or public)
 $app->get(
-    ApiRoutesHelper::ADDRESSES_BASE_TEMPLATE,
-    function ($id) use ($app){
-        return ApiHandler::updateUserById($id);
+    ApiRoutesHelper::ALL_NODE_ADDRESSES,
+    function ($nodeId) use ($app){
+        return ApiHandler::getAllNodeAddresses($nodeId);
     }
 );
 
-// GET all node addresses with pagination
+// GET all node addresses with pagination (if node belong current user or public)
 $app->get(
     ApiRoutesHelper::ALL_NODE_ADDRESSES_WITH_PAGINATION,
-    function ($id) use ($app){
-        return ApiHandler::updateUserById($id);
+    function ($nodeId, $pageSize, $pageNum) use ($app){
+        return ApiHandler::getAllNodeAddresses($nodeId,$pageSize, $pageNum);
     }
 );
 
-// GET address (if node belong current user )
+// GET address (if node belong current user or public)
 $app->get(
     ApiRoutesHelper::ADDRESS_BY_ID,
     function ($id) use ($app){
-        return ApiHandler::updateUserById($id);
+        return ApiHandler::getAddress($id);
     }
 );
 
-// POST address new node
+// POST create new address
 $app->post(
-    ApiRoutesHelper::ADDRESS_BY_ID,
-    function ($id) use ($app){
-        return ApiHandler::updateUserById($id);
+    ApiRoutesHelper::ADDRESSES_CREATE,
+    function ($nodeId) use ($app){
+        return ApiHandler::createAddress($nodeId);
     }
 );
 
-// PUT address node (if node belong current user)
-$app->put(
+// PATCH update address (if node belong current user)
+$app->patch(
     ApiRoutesHelper::ADDRESS_BY_ID,
     function ($id) use ($app){
-        return ApiHandler::updateUserById($id);
+        return ApiHandler::updateAddress($id);
     }
 );
 
-// DELETE address node (if node belong current user)
+// DELETE address (if node belong current user)
 $app->delete(
     ApiRoutesHelper::ADDRESS_BY_ID,
     function ($id) use ($app){
-        return ApiHandler::updateUserById($id);
+        return ApiHandler::deleteAddress($id);
     }
 );
 

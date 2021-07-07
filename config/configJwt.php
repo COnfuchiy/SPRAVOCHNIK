@@ -4,8 +4,12 @@ date_default_timezone_set('Europe/Moscow');
 
 class ConfigJwt
 {
-    public static $key = "yura_genius";
-    public static $iss = "http://3.122.244.77";
-    public static $aud = "http://3.122.244.77";
+    /**
+     * secret JWT key
+     * @var string
+     */
+    public static $key = "";
+    public static $iss = "";
+    public static $aud = "";
     public static $exp = 2*3600;
 }

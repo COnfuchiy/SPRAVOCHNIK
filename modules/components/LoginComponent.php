@@ -1,10 +1,12 @@
 <?php
 require_once API_PATH . "/modules/helpers/JwtHelper.php";
 require_once API_PATH . "/modules/helpers/ApiHelper.php";
+
 use Phalcon\Http\Response;
+
 class LoginComponent
 {
-    private static function CheckUserData($callback):Response
+    private static function CheckUserData($callback): Response
     {
         $data = json_decode(file_get_contents('php://input'));
         if ($data) {
@@ -17,22 +19,27 @@ class LoginComponent
         return ApiHelper::createRequestErrorResponse("No user data transferred");
     }
 
-    public static function Authorization():Response
+    public static function Authorization(): Response
     {
         return self::CheckUserData(function ($data) {
-            $user = Users::findUserByLogin($data->userLogin);
+            try {
+                $user = Users::findUserByLogin($data->userLogin);
+            } catch (Exception $exception) {
+                return ApiHelper::createErrorResponse(
+                    ApiHelper::INTERNAL_SERVER_ERROR, [$exception->getMessage()]);
+            }
             if ($user && password_verify($data->userPassword, $user->user_passwd)) {
                 $newUserLastDate = time();
                 $user->user_last_date = $newUserLastDate;
                 if ($user->update()) {
                     $currentTimestamp = new DateTimeImmutable();
-                    $jwt = JwtHelper::CreateJwtToken($currentTimestamp->getTimestamp(),$user->user_id, $user->user_login, $newUserLastDate);
+                    $jwt = JwtHelper::CreateJwtToken($currentTimestamp->getTimestamp(), $user->user_id, $user->user_login, $newUserLastDate);
                     return ApiHelper::createSuccessResponse(
                         [
-                            "token"=>$jwt,
-                            "userId"=>$user->user_id,
-                            "setIn"=>date('c',$currentTimestamp->getTimestamp()),
-                            "expiresIn"=>date('c',$currentTimestamp->getTimestamp()+ConfigJwt::$exp)
+                            "token" => $jwt,
+                            "userId" => $user->user_id,
+                            "setIn" => date('c', $currentTimestamp->getTimestamp()),
+                            "expiresIn" => date('c', $currentTimestamp->getTimestamp() + ConfigJwt::$exp)
                         ],
                         ApiHelper::ACCEPTED
                     );
@@ -45,19 +52,24 @@ class LoginComponent
         });
     }
 
-    public static function Registration():Response
+    public static function Registration(): Response
     {
         return self::CheckUserData(function ($data) {
-            $user = Users::findUserByLogin($data->userLogin);
+            try {
+                $user = Users::findUserByLogin($data->userLogin);
+            } catch (Exception $exception) {
+                return ApiHelper::createErrorResponse(
+                    ApiHelper::INTERNAL_SERVER_ERROR, [$exception->getMessage()]);
+            }
             if (!$user) {
                 $newUser = new Users();
-                $timestamp =  time();
+                $timestamp = time();
                 $newUser->user_login = $data->userLogin;
                 $newUser->user_passwd = password_hash($data->userPassword, PASSWORD_BCRYPT);
                 $newUser->user_reg_date = $timestamp;
                 $newUser->user_last_date = $timestamp;
                 if ($newUser->create()) {
-                    return ApiHelper::createSuccessResponse([],ApiHelper::CREATED);
+                    return ApiHelper::createSuccessResponse([], ApiHelper::CREATED);
                 }
                 $messages = $user->getMessages();
                 return ApiHelper::createErrorResponse(
@@ -67,7 +79,8 @@ class LoginComponent
         });
     }
 
-    public static function CheckAuth($callback):Response{
+    public static function CheckAuth($callback): Response
+    {
         $jwtMatches = JwtHelper::GetJwtTokenMatchesForHeaders();
         if (sizeof($jwtMatches) != 0) {
             if ($jwtMatches[1]) {
@@ -81,7 +94,7 @@ class LoginComponent
                             return $callback($token->data->id);
                     }
                 }
-                return ApiHelper::createErrorResponse(ApiHelper::UNAUTHORIZED,["Authorization failed"]);
+                return ApiHelper::createErrorResponse(ApiHelper::UNAUTHORIZED, ["Authorization failed"]);
             }
             return ApiHelper::createRequestErrorResponse("Authorization bearer header is empty");
         }

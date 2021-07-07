@@ -17,11 +17,14 @@ class ApiHelper
     const FORBIDDEN = 403;
     const NOT_FOUND = 404;
     const METHOD_NOT_ALLOWED = 405;
-    const I_M_A_TEAPOT = 418;
+    const IM_A_TEAPOT = 418;
     const INTERNAL_SERVER_ERROR = 500;
     const NOT_IMPLEMENTED = 501;
     const BAD_GATEWAY = 502;
 
+    const USERS = Users::class;
+    const NODES = Nodes::class;
+    const ADDRESSES = Addresses::class;
 
     private static function setBaseJsonApiResponse(int $code, string $data, string $errors): Response
     {
@@ -52,7 +55,7 @@ class ApiHelper
         return $response;
     }
 
-    public static function userApiJsonSerialize($userData): array
+    public static function userApiJsonSerialize(Users $userData): array
     {
         return array(
             "type" => "users",
@@ -68,7 +71,7 @@ class ApiHelper
             ]
         );
     }
-    public static function nodeApiJsonSerialize($nodeData): array
+    public static function nodeApiJsonSerialize(Nodes $nodeData): array
     {
         return array(
             "type" => "nodes",
@@ -81,12 +84,37 @@ class ApiHelper
                 "node_patronymic" => $nodeData->node_patronymic,
                 "node_company" => $nodeData->node_company,
                 "node_phone" => $nodeData->node_phone,
+                "node_email" => $nodeData->node_email,
                 "node_create_date" => date('c', $nodeData->node_create_date),
                 "node_update_date" => date('c', $nodeData->node_update_date),
                 "is_public" => $nodeData->is_public,
             ],
             "links" => [
                 "self" => ApiRoutesHelper::getNodeUrl($nodeData->node_id)
+            ]
+        );
+    }
+
+    public static function addressApiJsonSerialize(Addresses $addressData):array{
+        return array(
+            "type" => "addresses",
+            "id" => $addressData->address_id,
+            "attributes" => [
+                "address_id" => $addressData->address_id,
+                "node_id" => $addressData->node_id,
+                "address_name" => $addressData->address_name,
+                "address_country" => $addressData->address_country,
+                "address_region" => $addressData->address_region,
+                "address_city" => $addressData->address_city,
+                "address_street" => $addressData->address_street,
+                "address_house" => $addressData->address_house,
+                "address_entrance" => $addressData->address_entrance,
+                "address_apartment" => $addressData->address_apartment,
+                "address_create_date" => date('c', $addressData->address_create_date),
+                "address_update_date" => date('c', $addressData->address_update_date),
+            ],
+            "links" => [
+                "self" => ApiRoutesHelper::getNodeUrl($addressData->address_id)
             ]
         );
     }
@@ -114,5 +142,33 @@ class ApiHelper
         );
     }
 
+    public static function getAllRecords($dataFindMethod, $type): Response{
+        try {
+            $data = $dataFindMethod();
+        } catch (Exception $exception) {
+            return ApiHelper::createErrorResponse(
+                ApiHelper::INTERNAL_SERVER_ERROR, [$exception->getMessage()]);
+        }
+        $outputDataRecords = [];
+        foreach ($data as $record) {
+            switch ($type){
+                case self::USERS:{
+                    $outputDataRecords[] = ApiHelper::userApiJsonSerialize($record);
+                    break;
+                }
+                case self::NODES:{
+                    $outputDataRecords[] = ApiHelper::nodeApiJsonSerialize($record);
+                    break;
+                }
+                case self::ADDRESSES:{
+                    $outputDataRecords[] = ApiHelper::addressApiJsonSerialize($record);
+                    break;
+                }
+            }
+        }
+        return ApiHelper::createSuccessResponse(
+            $outputDataRecords
+        );
+    }
 
 }
