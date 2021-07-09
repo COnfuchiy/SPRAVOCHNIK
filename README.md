@@ -34,7 +34,7 @@ The routes available are:
 | `GET`   | `/nodes/public`           |                            | Get all public directory nodes              |
 | `GET`   | `/nodes/{Id}/addresses`   | Numeric Id                 | Get all related addresses of directory node |
 | `GET`   | `/addresses/{Id}`         | Numeric Id                 | Get addresses                               |
-| `GET`   | `/addresses?node[Id]={Id}`| Numeric Id                 | Create address                              |
+| `GET`   | `/addresses/nodes/{Id}`   | Numeric Id                 | Create address                              |
 | `PATCH` | `/addresses/{Id}`         | Numeric Id                 | Update address                              |
 | `DELETE`| `/addresses/{Id}`         | Numeric Id                 | Delete address                              |
 
@@ -46,7 +46,7 @@ The routes available are:
 
 `/nodes?pageSize={pageSize}&pageNum={pageNum}`
 
-`/nodes/public??pageSize={pageSize}&pageNum={pageNum}`
+`/nodes/public?pageSize={pageSize}&pageNum={pageNum}`
 
 `/nodes/{Id}/addresses?pageSize={pageSize}&pageNum={pageNum}`
 
