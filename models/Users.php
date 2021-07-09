@@ -10,6 +10,10 @@ class Users extends Model
     public $user_reg_date;
     public $user_last_date;
 
+    /**
+     * @param string $userLogin
+     * @return bool|array
+     */
     public static function findUserByLogin(string $userLogin)
     {
         $result = Users::findFirstByUserLogin($userLogin);
@@ -19,6 +23,10 @@ class Users extends Model
         return false;
     }
 
+    /**
+     * @param string $userId
+     * @return bool|array
+     */
     public static function findUserById(string $userId)
     {
         $result = Users::findFirstByUserId($userId);
@@ -28,15 +36,23 @@ class Users extends Model
         return false;
     }
 
-    public static function getAll(int $pageSize = 0, int $pageNum = 0)
+    /**
+     * @return bool|array
+     */
+    public static function getAll()
     {
-        if ($pageSize && $pageNum) {
-            $results = Users::find([
-                'limit' => $pageSize,
-                'offset' => ($pageNum - 1) * $pageSize
-            ]);
+        if (isset($_GET['pageSize']) && isset($_GET['pageNum'])) {
+            if (is_numeric($_GET['pageSize']) && is_numeric($_GET['pageNum'])) {
+                $pageSize = (int)$_GET['pageSize'];
+                $pageNum = (int)$_GET['pageNum'];
+                $results = Users::find([
+                        'limit' => $pageSize,
+                        'offset' => ($pageNum - 1) * $pageSize]
+                );
+            } else {
+                return false;
+            }
         } else {
-
             $results = Users::find();
         }
         if ($results) {
@@ -45,5 +61,13 @@ class Users extends Model
         return false;
     }
 
+    public static function getAllCount():int
+    {
+        $results = Users::find();
+        if ($results) {
+            return count($results);
+        }
+        return 0;
+    }
 
 }

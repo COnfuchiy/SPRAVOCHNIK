@@ -17,6 +17,10 @@ class Addresses extends Model
     public $address_create_date;
     public $address_update_date;
 
+    /**
+     * @param int $addressId
+     * @return bool|array
+     */
     public static function findAddressById(int $addressId)
     {
         $result = Addresses::findFirstByAddressId($addressId);
@@ -26,20 +30,47 @@ class Addresses extends Model
         return false;
     }
 
-    public static function findAddressesByNodeId(int $nodeId, int $pageSize = 0, int $pageNum = 0)
+    /**
+     * @param int $nodeId
+     * @return bool|array
+     */
+    public static function findAddressesByNodeId(int $nodeId)
     {
-        if ($pageSize && $pageNum) {
-            $results = Addresses::findByNodeId($nodeId, [
-                    'limit' => $pageSize,
-                    'offset' => ($pageNum - 1) * $pageSize]
-            );
+        if (isset($_GET['pageSize']) && isset($_GET['pageNum'])) {
+            if (is_numeric($_GET['pageSize']) && is_numeric($_GET['pageNum'])) {
+                $pageSize = (int)$_GET['pageSize'];
+                $pageNum = (int)$_GET['pageNum'];
+                $results = Addresses::find([
+                        'conditions' => 'node_id = :node_id:',
+                        'bind' => [
+                            'node_id' => $nodeId,
+                        ],
+                        'limit' => $pageSize,
+                        'offset' => ($pageNum - 1) * $pageSize]
+                );
+            } else {
+                return false;
+            }
         } else {
-            $results = Nodes::findByNodeId($nodeId);
+            $results = Addresses::findByNodeId($nodeId);
         }
         if ($results) {
             return $results;
         }
         return false;
+    }
+
+    /**
+     * @param int $Id
+     * @return int
+     */
+    public static function getAllNodeAddressesCount(int $Id):int
+    {
+        $results = Addresses::findByNodeId($Id);
+        if ($results) {
+            return count($results);
+        }
+        return 0;
     }
 
 

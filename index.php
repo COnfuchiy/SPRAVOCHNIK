@@ -30,10 +30,11 @@ $container->set(
     function () {
         return new Postgresql(
             [
-                'host'     => '',
-                'username' => '',
-                'password' => '',
-                'dbname'   => '',
+                'host'     => 'localhost',
+                'username' => 'postgres',
+                'password' => 'postgres',
+                'dbname'   => 'postgres',
+//                'charset' => 'utf8',
             ]
         );
     }
@@ -73,14 +74,6 @@ $app->get(
     }
 );
 
-// GET all users with pagination
-$app->get(
-    ApiRoutesHelper::ALL_USERS_WITH_PAGINATION,
-    function ($pageSize, $pageNum) use ($app){
-        return ApiHandler::getAllUsers($pageSize, $pageNum);
-    }
-);
-
 // POST not allowed
 $app->post(
     ApiRoutesHelper::USER_BY_ID,
@@ -107,13 +100,6 @@ $app->get(
     }
 );
 
-// GET all current user nodes with pagination
-$app->get(
-    ApiRoutesHelper::ALL_USER_NODES_WITH_PAGINATION,
-    function ($pageSize, $pageNum) use ($app){
-        return ApiHandler::getAllUserNodes($pageSize, $pageNum);
-    }
-);
 
 // GET node (if node belong current user or public)
 $app->get(
@@ -154,27 +140,12 @@ $app->get(
         return ApiHandler::getAllPublicNodes();
     }
 );
-// GET all public nodes with pagination
-$app->get(
-    ApiRoutesHelper::NODES_PUBLIC_WITH_PAGINATION,
-    function ($pageSize, $pageNum) use ($app){
-        return ApiHandler::getAllPublicNodes($pageSize, $pageNum);
-    }
-);
 
 // GET all node addresses (if node belong current user or public)
 $app->get(
     ApiRoutesHelper::ALL_NODE_ADDRESSES,
     function ($nodeId) use ($app){
         return ApiHandler::getAllNodeAddresses($nodeId);
-    }
-);
-
-// GET all node addresses with pagination (if node belong current user or public)
-$app->get(
-    ApiRoutesHelper::ALL_NODE_ADDRESSES_WITH_PAGINATION,
-    function ($nodeId, $pageSize, $pageNum) use ($app){
-        return ApiHandler::getAllNodeAddresses($nodeId,$pageSize, $pageNum);
     }
 );
 

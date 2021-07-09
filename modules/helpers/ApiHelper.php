@@ -26,7 +26,14 @@ class ApiHelper
     const NODES = Nodes::class;
     const ADDRESSES = Addresses::class;
 
-    private static function setBaseJsonApiResponse(int $code, string $data, string $errors): Response
+    /**
+     * @param int $code
+     * @param array $data
+     * @param array $errors
+     * @param array $metaData
+     * @return Response
+     */
+    private static function setBaseJsonApiResponse(int $code, array $data, array $errors, array $metaData = []): Response
     {
         $response = new Response();
         $timestamp = date('c');
@@ -35,12 +42,12 @@ class ApiHelper
                 'version' => '1.0',
             ],
         ];
-        if ($data) {
-            $hash = sha1($timestamp . $data);
-            $content = json_decode($data, true);
+        if ($data!==[]) {
+            $hash = sha1($timestamp . json_encode($data));
+            $content = $data;
         } else {
-            $hash = sha1($timestamp . $errors);
-            $content = json_decode($errors, true);
+            $hash = sha1($timestamp . json_encode($errors));
+            $content = $errors;
         }
         $meta = [
             'meta' => [
@@ -48,13 +55,21 @@ class ApiHelper
                 'hash' => $hash,
             ]
         ];
+        if($metaData!==[]){
+            $meta['meta'] = array_merge_recursive($meta['meta'],$metaData);
+        }
         $response->setStatusCode($code);
-        $response->setJsonContent(
-            array_merge_recursive($jsonApi + $content + $meta)
+        $response->setContentType('application/json', 'utf-8');
+        $response->setContent(
+            json_encode(array_merge_recursive($jsonApi + $content + $meta))
         );
         return $response;
     }
 
+    /**
+     * @param Users $userData
+     * @return array
+     */
     public static function userApiJsonSerialize(Users $userData): array
     {
         return array(
@@ -71,13 +86,18 @@ class ApiHelper
             ]
         );
     }
+
+    /**
+     * @param Nodes $nodeData
+     * @return array
+     */
     public static function nodeApiJsonSerialize(Nodes $nodeData): array
     {
         return array(
             "type" => "nodes",
-            "id" => $nodeData->user_id,
+            "id" => (int)$nodeData->node_id,
             "attributes" => [
-                "node_id" => $nodeData->node_id,
+                "node_id" => (int)$nodeData->node_id,
                 "user_id" => $nodeData->user_id,
                 "node_name" => $nodeData->node_name,
                 "node_last_name" => $nodeData->node_last_name,
@@ -95,13 +115,17 @@ class ApiHelper
         );
     }
 
+    /**
+     * @param Addresses $addressData
+     * @return array
+     */
     public static function addressApiJsonSerialize(Addresses $addressData):array{
         return array(
             "type" => "addresses",
-            "id" => $addressData->address_id,
+            "id" => (int)$addressData->address_id,
             "attributes" => [
-                "address_id" => $addressData->address_id,
-                "node_id" => $addressData->node_id,
+                "address_id" => (int)$addressData->address_id,
+                "node_id" => (int)$addressData->node_id,
                 "address_name" => $addressData->address_name,
                 "address_country" => $addressData->address_country,
                 "address_region" => $addressData->address_region,
@@ -119,30 +143,51 @@ class ApiHelper
         );
     }
 
+    /**
+     * @param int $code
+     * @param array $errors
+     * @return Response
+     */
     public static function createErrorResponse(int $code, array $errors): Response
     {
         return self::setBaseJsonApiResponse(
-            $code, "", json_encode(["errors" => $errors])
+            $code, [], ["errors" => $errors]
         );
     }
 
+    /**
+     * @param string $error
+     * @return Response
+     */
     public static function createRequestErrorResponse(string $error): Response
     {
         return self::setBaseJsonApiResponse(
-            400, "", json_encode(["errors" => [$error]])
+            400, [], ["errors" => [$error]]
         );
     }
 
-    public static function createSuccessResponse(array $data = [], int $code = 200): Response
+    /**
+     * @param array $data
+     * @param int $code
+     * @param array $meta
+     * @return Response
+     */
+    public static function createSuccessResponse(array $data = [], int $code = ApiHelper::OK, array $meta=[]): Response
     {
         return self::setBaseJsonApiResponse(
-            $code, json_encode(["data" =>
+            $code, ["data" =>
             array_keys($data) !== range(0, count($data) - 1) ? [$data] : $data  //TODO hmmm
-        ]), ""
+        ], [],$meta
         );
     }
 
-    public static function getAllRecords($dataFindMethod, $type): Response{
+    /**
+     * @param $dataFindMethod
+     * @param $type
+     * @param $meta
+     * @return Response
+     */
+    public static function getAllRecords($dataFindMethod, $type, $meta): Response{
         try {
             $data = $dataFindMethod();
         } catch (Exception $exception) {
@@ -167,8 +212,38 @@ class ApiHelper
             }
         }
         return ApiHelper::createSuccessResponse(
-            $outputDataRecords
+            $outputDataRecords,ApiHelper::OK,$meta
         );
+    }
+
+    /**
+     * @param string $type
+     * @param int $id
+     * @param bool $is_public
+     * @return array
+     */
+    public static function getRecordsCount(string $type, int $id = 0, bool $is_public = false):array {
+        $metaCount=[
+            'count'=>0
+        ];
+        switch ($type){
+            case self::USERS:{
+                $metaCount['count'] = Users::getAllCount();
+                break;
+            }
+            case self::NODES:{
+                if ($is_public){
+                    $metaCount['count'] = Nodes::getAllPublicCount();
+                }
+                $metaCount['count'] = Nodes::getAllUserNodesCount($id);
+                break;
+            }
+            case self::ADDRESSES:{
+                $metaCount['count'] = Addresses::getAllNodeAddressesCount($id);
+                break;
+            }
+        }
+        return $metaCount;
     }
 
 }

@@ -16,6 +16,10 @@ class Nodes extends Model
     public $node_update_date;
     public $is_public;
 
+    /**
+     * @param int $nodeId
+     * @return bool|array
+     */
     public static function findNodeById(int $nodeId)
     {
         $result = Nodes::findFirstByNodeId($nodeId);
@@ -26,13 +30,27 @@ class Nodes extends Model
     }
 
 
-    public static function findNodesByUserId(int $userId, int $pageSize = 0, int $pageNum = 0)
+    /**
+     * @param int $userId
+     * @return bool|array
+     */
+    public static function findNodesByUserId(int $userId)
     {
-        if ($pageSize && $pageNum) {
-            $results = Nodes::findByUserId($userId, [
-                    'limit' => $pageSize,
-                    'offset' => ($pageNum - 1) * $pageSize]
-            );
+        if (isset($_GET['pageSize']) && isset($_GET['pageNum'])) {
+            if (is_numeric($_GET['pageSize']) && is_numeric($_GET['pageNum'])) {
+                $pageSize = (int)$_GET['pageSize'];
+                $pageNum = (int)$_GET['pageNum'];
+                $results = Nodes::find([
+                        'conditions' => 'user_id = :user_id:',
+                        'bind' => [
+                            'user_id' => $userId,
+                        ],
+                        'limit' => $pageSize,
+                        'offset' => ($pageNum - 1) * $pageSize]
+                );
+            } else {
+                return false;
+            }
         } else {
             $results = Nodes::findByUserId($userId);
         }
@@ -42,13 +60,23 @@ class Nodes extends Model
         return false;
     }
 
-    public static function findPublicNodes(int $pageSize = 0, int $pageNum = 0)
+    /**
+     * @return bool|array
+     */
+    public static function findPublicNodes()
     {
-        if ($pageSize && $pageNum) {
-            $results = Nodes::findByIsPublic(true, [
-                    'limit' => $pageSize,
-                    'offset' => ($pageNum - 1) * $pageSize]
-            );
+        if (isset($_GET['pageSize']) && isset($_GET['pageNum'])) {
+            if (is_numeric($_GET['pageSize']) && is_numeric($_GET['pageNum'])) {
+                $pageSize = (int)$_GET['pageSize'];
+                $pageNum = (int)$_GET['pageNum'];
+                $results = Nodes::find([
+                        'conditions' => 'is_public = true',
+                        'limit' => $pageSize,
+                        'offset' => ($pageNum - 1) * $pageSize]
+                );
+            } else {
+                return false;
+            }
         } else {
             $results = Nodes::findByIsPublic(true);
         }
@@ -56,6 +84,31 @@ class Nodes extends Model
             return $results;
         }
         return false;
+    }
+
+    /**
+     * @return int
+     */
+    public static function getAllPublicCount():int
+    {
+        $results = Nodes::findByIsPublic(true);
+        if ($results) {
+            return count($results);
+        }
+        return 0;
+    }
+
+    /**
+     * @param int $userId
+     * @return int
+     */
+    public static function getAllUserNodesCount(int $userId):int
+    {
+        $results = Nodes::findByUserId($userId);
+        if ($results) {
+            return count($results);
+        }
+        return 0;
     }
 
 }

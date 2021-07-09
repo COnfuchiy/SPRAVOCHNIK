@@ -9,17 +9,29 @@ use Phalcon\Http\Response;
  */
 class ApiHandler
 {
+    /**
+     * Authorization action
+     * @return Response
+     */
     public static function authorization(): Response
     {
         return LoginComponent::Authorization();
     }
 
+    /**
+     * Registration action
+     * @return Response
+     */
     public static function registration(): Response
     {
         return LoginComponent::Registration();
     }
 
-    public static function getUserById($userId): Response
+    /**
+     * @param int $userId
+     * @return Response
+     */
+    public static function getUserById(int $userId): Response
     {
         return LoginComponent::CheckAuth(function ($tokenUserId) use ($userId): Response {
             // 0 refers to the current user (from the authorization token)
@@ -43,16 +55,23 @@ class ApiHandler
         });
     }
 
-    public static function getAllUsers(int $pageSize = 0, int $pageNum = 0): Response
+    /**
+     * @return Response
+     */
+    public static function getAllUsers(): Response
     {
-        return LoginComponent::CheckAuth(function () use ($pageSize, $pageNum): Response {
-            return ApiHelper::getAllRecords(function () use ($pageSize, $pageNum) {
-                return Users::getAll($pageSize, $pageNum);
-            }, ApiHelper::USERS);
+        return LoginComponent::CheckAuth(function (): Response {
+            return ApiHelper::getAllRecords(function () {
+                return Users::getAll();
+            }, ApiHelper::USERS,ApiHelper::getRecordsCount(ApiHelper::USERS));
         });
     }
 
-    public static function updateUser($userId): Response
+    /**
+     * @param int $userId
+     * @return Response
+     */
+    public static function updateUser(int $userId): Response
     {
         return LoginComponent::CheckAuth(function ($tokenUserId) use ($userId): Response {
             // 0 refers to the current user (from the authorization token)
@@ -89,16 +108,23 @@ class ApiHandler
         });
     }
 
-    public static function getAllUserNodes(int $pageSize = 0, int $pageNum = 0): Response
+    /**
+     * @return Response
+     */
+    public static function getAllUserNodes(): Response
     {
-        return LoginComponent::CheckAuth(function ($userId) use ($pageSize, $pageNum): Response {
-            return ApiHelper::getAllRecords(function () use ($userId, $pageSize, $pageNum) {
-                return Nodes::findNodesByUserId($userId, $pageSize, $pageNum);
-            }, ApiHelper::NODES);
+        return LoginComponent::CheckAuth(function ($userId): Response {
+            return ApiHelper::getAllRecords(function () use($userId) {
+                return Nodes::findNodesByUserId($userId);
+            }, ApiHelper::NODES,ApiHelper::getRecordsCount(ApiHelper::NODES,$userId,false));
         });
     }
 
-    public static function getNode($nodeId)
+    /**
+     * @param int $nodeId
+     * @return Response
+     */
+    public static function getNode(int $nodeId)
     {
         return LoginComponent::CheckAuth(function ($userId) use ($nodeId): Response {
             try {
@@ -123,7 +149,8 @@ class ApiHandler
 
     public static function createNode()
     {
-        return LoginComponent::CheckAuth(function ($userId): Response {
+        return LoginComponent::CheckAuth(function (int $userId): Response {
+            //get json data from request body
             $data = json_decode(file_get_contents('php://input'));
             if ($data) {
                 try {
@@ -147,7 +174,7 @@ class ApiHandler
                 }
                 if ($newNode->create()) {
                     return ApiHelper::createSuccessResponse(
-                        ApiHelper::nodeApiJsonSerialize($newNode)
+                        ApiHelper::nodeApiJsonSerialize($newNode),ApiHelper::CREATED
                     );
                 }
                 $messages = $newNode->getMessages();
@@ -159,9 +186,14 @@ class ApiHandler
         });
     }
 
-    public static function updateNode($nodeId)
+    /**
+     * @param int $nodeId
+     * @return Response
+     */
+    public static function updateNode(int $nodeId): Response
     {
         return LoginComponent::CheckAuth(function ($userId) use ($nodeId): Response {
+            //get json data from request body
             $data = json_decode(file_get_contents('php://input'));
             if ($data) {
                 try {
@@ -199,7 +231,11 @@ class ApiHandler
         });
     }
 
-    public static function deleteNode($nodeId)
+    /**
+     * @param int $nodeId
+     * @return Response
+     */
+    public static function deleteNode(int $nodeId): Response
     {
         return LoginComponent::CheckAuth(function ($userId) use ($nodeId): Response {
             try {
@@ -220,7 +256,7 @@ class ApiHandler
                     if ($node->delete()) {
                         if (count($addressesErrors)) {
                             // its error, but is 200 answer. So magic...
-                            return ApiHelper::createErrorResponse(200, $addressesErrors);
+                            return ApiHelper::createErrorResponse(ApiHelper::OK, $addressesErrors);
                         }
                         return ApiHelper::createSuccessResponse();
                     }
@@ -236,18 +272,25 @@ class ApiHandler
         });
     }
 
-    public static function getAllPublicNodes(int $pageSize = 0, int $pageNum = 0)
+    /**
+     * @return Response
+     */
+    public static function getAllPublicNodes(): Response
     {
-        return LoginComponent::CheckAuth(function ($userId) use ($pageSize, $pageNum): Response {
-            return ApiHelper::getAllRecords(function () use ($userId, $pageSize, $pageNum) {
-                return Nodes::findPublicNodes($pageSize, $pageNum);
-            }, ApiHelper::NODES);
+        return LoginComponent::CheckAuth(function ($userId): Response {
+            return ApiHelper::getAllRecords(function () use ($userId) {
+                return Nodes::findPublicNodes();
+            }, ApiHelper::NODES, ApiHelper::getRecordsCount(ApiHelper::NODES,true));
         });
     }
 
-    public static function getAllNodeAddresses(int $nodeId, int $pageSize = 0, int $pageNum = 0)
+    /**
+     * @param int $nodeId
+     * @return Response
+     */
+    public static function getAllNodeAddresses(int $nodeId): Response
     {
-        return LoginComponent::CheckAuth(function ($userId) use ($nodeId, $pageSize, $pageNum): Response {
+        return LoginComponent::CheckAuth(function ($userId) use ($nodeId): Response {
             try {
                 $node = Nodes::findNodeById($nodeId);
             } catch (Exception $exception) {
@@ -256,9 +299,9 @@ class ApiHandler
             }
             if ($node) {
                 if ($node->user_id === $userId || $node->is_public) {
-                    return ApiHelper::getAllRecords(function () use ($nodeId, $pageSize, $pageNum) {
-                        return Addresses::findAddressesByNodeId($nodeId, $pageSize, $pageNum);
-                    }, ApiHelper::ADDRESSES);
+                    return ApiHelper::getAllRecords(function () use ($nodeId) {
+                        return Addresses::findAddressesByNodeId($nodeId);
+                    }, ApiHelper::ADDRESSES, ApiHelper::getRecordsCount(ApiHelper::ADDRESSES));
                 }
                 return ApiHelper::createErrorResponse(
                     ApiHelper::FORBIDDEN, ["Insufficient rights"]);
@@ -268,7 +311,11 @@ class ApiHandler
         });
     }
 
-    public static function getAddress(int $addressId)
+    /**
+     * @param int $addressId
+     * @return Response
+     */
+    public static function getAddress(int $addressId): Response
     {
         return LoginComponent::CheckAuth(function ($userId) use ($addressId): Response {
             try {
@@ -296,7 +343,11 @@ class ApiHandler
         });
     }
 
-    public static function createAddress($nodeId)
+    /**
+     * @param $nodeId
+     * @return Response
+     */
+    public static function createAddress($nodeId): Response
     {
         return LoginComponent::CheckAuth(function () use ($nodeId): Response {
             $data = json_decode(file_get_contents('php://input'));
@@ -322,7 +373,7 @@ class ApiHandler
                 }
                 if ($newAddress->create()) {
                     return ApiHelper::createSuccessResponse(
-                        ApiHelper::addressApiJsonSerialize($newAddress)
+                        ApiHelper::addressApiJsonSerialize($newAddress),ApiHelper::CREATED
                     );
                 }
                 $messages = $newAddress->getMessages();
@@ -333,7 +384,11 @@ class ApiHandler
         });
     }
 
-    public static function updateAddress($addressId)
+    /**
+     * @param $addressId
+     * @return Response
+     */
+    public static function updateAddress($addressId): Response
     {
         return LoginComponent::CheckAuth(function ($userId) use ($addressId): Response {
             $data = json_decode(file_get_contents('php://input'));
@@ -378,7 +433,11 @@ class ApiHandler
         });
     }
 
-    public static function deleteAddress($addressId)
+    /**
+     * @param $addressId
+     * @return Response
+     */
+    public static function deleteAddress($addressId): Response
     {
         return LoginComponent::CheckAuth(function ($userId) use ($addressId): Response {
             try {

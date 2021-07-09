@@ -42,13 +42,13 @@ The routes available are:
 
 **NOTE** `{pageSize}` is replaced by the number of items on one page, `{pageNum}` by the page number (greater than 0) 
 
-`/users?page[size]={pageSize}&page[num]={pageNum}`
+`/users?pageSize={pageSize}&pageNum={pageNum}`
 
-`/nodes?page[size]={pageSize}&page[num]={pageNum}`
+`/nodes?pageSize={pageSize}&pageNum={pageNum}`
 
-`/nodes/public??page[size]={pageSize}&page[num]={pageNum}`
+`/nodes/public??pageSize={pageSize}&pageNum={pageNum}`
 
-`/nodes/{Id}/addresses?page[size]={pageSize}&page[num]={pageNum}`
+`/nodes/{Id}/addresses?pageSize={pageSize}&pageNum={pageNum}`
 
 #### Responses
 ##### Structure

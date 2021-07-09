@@ -6,8 +6,13 @@ use Phalcon\Http\Response;
 
 class LoginComponent
 {
+    /**
+     * @param $callback
+     * @return Response
+     */
     private static function CheckUserData($callback): Response
     {
+        //get json user data from request body
         $data = json_decode(file_get_contents('php://input'));
         if ($data) {
             if (isset($data->userLogin) && isset($data->userPassword) &&
@@ -19,6 +24,9 @@ class LoginComponent
         return ApiHelper::createRequestErrorResponse("No user data transferred");
     }
 
+    /**
+     * @return Response
+     */
     public static function Authorization(): Response
     {
         return self::CheckUserData(function ($data) {
@@ -56,6 +64,9 @@ class LoginComponent
         });
     }
 
+    /**
+     * @return Response
+     */
     public static function Registration(): Response
     {
         return self::CheckUserData(function ($data) {
@@ -85,6 +96,10 @@ class LoginComponent
         });
     }
 
+    /**
+     * @param $callback
+     * @return Response
+     */
     public static function CheckAuth($callback): Response
     {
         $jwtMatches = JwtHelper::GetJwtTokenMatchesForHeaders();
