@@ -1,25 +1,29 @@
 <?php
 
 use Phalcon\Mvc\Model;
+use Phalcon\Http\Request;
 
+/**
+ * Class Addresses
+ */
 class Addresses extends Model
 {
-    public $node_id;
-    public $address_id;
-    public $address_name;
-    public $address_country;
-    public $address_region;
-    public $address_city;
-    public $address_street;
-    public $address_house;
-    public $address_entrance;
-    public $address_apartment;
-    public $address_create_date;
-    public $address_update_date;
+    public int $node_id;
+    public int $address_id;
+    public string $address_name;
+    public string $address_country;
+    public string $address_region;
+    public string $address_city;
+    public string $address_street;
+    public string $address_house;
+    public int $address_entrance;
+    public int $address_apartment;
+    public int $address_create_date;
+    public int $address_update_date;
 
     /**
      * @param int $addressId
-     * @return bool|array
+     * @return bool|Addresses
      */
     public static function findAddressById(int $addressId)
     {
@@ -37,20 +41,18 @@ class Addresses extends Model
     public static function findAddressesByNodeId(int $nodeId)
     {
         if (isset($_GET['pageSize']) && isset($_GET['pageNum'])) {
-            if (is_numeric($_GET['pageSize']) && is_numeric($_GET['pageNum'])) {
-                $pageSize = (int)$_GET['pageSize'];
-                $pageNum = (int)$_GET['pageNum'];
-                $results = Addresses::find([
-                        'conditions' => 'node_id = :node_id:',
-                        'bind' => [
-                            'node_id' => $nodeId,
-                        ],
-                        'limit' => $pageSize,
-                        'offset' => ($pageNum - 1) * $pageSize]
-                );
-            } else {
-                return false;
-            }
+            $pageSize = (int)$_GET['pageSize'];
+            $pageNum = (int)$_GET['pageNum'];
+            $results = Addresses::find(
+                [
+                    'conditions' => 'node_id = :node_id:',
+                    'bind' => [
+                        'node_id' => $nodeId,
+                    ],
+                    'limit' => $pageSize,
+                    'offset' => ($pageNum - 1) * $pageSize
+                ]
+            );
         } else {
             $results = Addresses::findByNodeId($nodeId);
         }
@@ -64,7 +66,7 @@ class Addresses extends Model
      * @param int $Id
      * @return int
      */
-    public static function getAllNodeAddressesCount(int $Id):int
+    public static function getAllNodeAddressesCount(int $Id): int
     {
         $results = Addresses::findByNodeId($Id);
         if ($results) {

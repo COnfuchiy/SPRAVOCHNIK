@@ -6,4 +6,5 @@ AddDefaultCharset UTF-8
     RewriteRule ^((?s).*)$ index.php?_url=/$1 [QSA,L]
     RewriteCond %{HTTP:Authorization} ^(.+)$
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+    RewriteRule ^(config/|db/|models/|modules/) - [F,L,NC]
 </IfModule>

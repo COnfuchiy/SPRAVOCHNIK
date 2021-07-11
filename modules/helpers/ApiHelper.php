@@ -4,27 +4,29 @@ use Phalcon\Http\Response;
 
 require_once API_PATH . "/modules/helpers/ApiRoutesHelper.php";
 
-
+/**
+ * Class ApiHelper
+ */
 class ApiHelper
 {
-    const OK = 200;
-    const CREATED = 201;
-    const ACCEPTED = 202;
-    const TEMPORARY_REDIRECT = 307;
-    const PERMANENTLY_REDIRECT = 308;
-    const BAD_REQUEST = 400;
-    const UNAUTHORIZED = 401;
-    const FORBIDDEN = 403;
-    const NOT_FOUND = 404;
-    const METHOD_NOT_ALLOWED = 405;
-    const IM_A_TEAPOT = 418;
-    const INTERNAL_SERVER_ERROR = 500;
-    const NOT_IMPLEMENTED = 501;
-    const BAD_GATEWAY = 502;
+    public const OK = 200;
+    public const CREATED = 201;
+    public const ACCEPTED = 202;
+    public const TEMPORARY_REDIRECT = 307;
+    public const PERMANENTLY_REDIRECT = 308;
+    public const BAD_REQUEST = 400;
+    public const UNAUTHORIZED = 401;
+    public const FORBIDDEN = 403;
+    public const NOT_FOUND = 404;
+    public const METHOD_NOT_ALLOWED = 405;
+    public const IM_A_TEAPOT = 418;
+    public const INTERNAL_SERVER_ERROR = 500;
+    public const NOT_IMPLEMENTED = 501;
+    public const BAD_GATEWAY = 502;
 
-    const USERS = Users::class;
-    const NODES = Nodes::class;
-    const ADDRESSES = Addresses::class;
+    public const USERS = Users::class;
+    public const NODES = Nodes::class;
+    public const ADDRESSES = Addresses::class;
 
     /**
      * @param int $code
@@ -33,8 +35,12 @@ class ApiHelper
      * @param array $metaData
      * @return Response
      */
-    private static function setBaseJsonApiResponse(int $code, array $data, array $errors, array $metaData = []): Response
-    {
+    private static function setBaseJsonApiResponse(
+        int $code,
+        array $data,
+        array $errors,
+        array $metaData = []
+    ): Response {
         $response = new Response();
         $timestamp = date('c');
         $jsonApi = [
@@ -42,7 +48,7 @@ class ApiHelper
                 'version' => '1.0',
             ],
         ];
-        if ($data!==[]) {
+        if ($data !== []) {
             $hash = sha1($timestamp . json_encode($data));
             $content = $data;
         } else {
@@ -55,8 +61,8 @@ class ApiHelper
                 'hash' => $hash,
             ]
         ];
-        if($metaData!==[]){
-            $meta['meta'] = array_merge_recursive($meta['meta'],$metaData);
+        if ($metaData !== []) {
+            $meta['meta'] = array_merge_recursive($meta['meta'], $metaData);
         }
         $response->setStatusCode($code);
         $response->setContentType('application/json', 'utf-8');
@@ -119,7 +125,8 @@ class ApiHelper
      * @param Addresses $addressData
      * @return array
      */
-    public static function addressApiJsonSerialize(Addresses $addressData):array{
+    public static function addressApiJsonSerialize(Addresses $addressData): array
+    {
         return array(
             "type" => "addresses",
             "id" => (int)$addressData->address_id,
@@ -151,7 +158,9 @@ class ApiHelper
     public static function createErrorResponse(int $code, array $errors): Response
     {
         return self::setBaseJsonApiResponse(
-            $code, [], ["errors" => $errors]
+            $code,
+            [],
+            ["errors" => $errors]
         );
     }
 
@@ -162,7 +171,9 @@ class ApiHelper
     public static function createRequestErrorResponse(string $error): Response
     {
         return self::setBaseJsonApiResponse(
-            400, [], ["errors" => [$error]]
+            400,
+            [],
+            ["errors" => [$error]]
         );
     }
 
@@ -172,47 +183,62 @@ class ApiHelper
      * @param array $meta
      * @return Response
      */
-    public static function createSuccessResponse(array $data = [], int $code = ApiHelper::OK, array $meta=[]): Response
-    {
+    public static function createSuccessResponse(
+        array $data = [],
+        int $code = ApiHelper::OK,
+        array $meta = []
+    ): Response {
         return self::setBaseJsonApiResponse(
-            $code, ["data" =>
-            array_keys($data) !== range(0, count($data) - 1) ? [$data] : $data  //TODO hmmm
-        ], [],$meta
+            $code,
+            [
+                "data" =>
+                    array_keys($data) !== range(0, count($data) - 1) ? [$data] : $data  //TODO hmmm
+            ],
+            [],
+            $meta
         );
     }
 
     /**
-     * @param $dataFindMethod
-     * @param $type
-     * @param $meta
+     * @param callable $dataFindMethod
+     * @param string $type
+     * @param array $meta
      * @return Response
      */
-    public static function getAllRecords($dataFindMethod, $type, $meta): Response{
+    public static function getAllRecords(callable $dataFindMethod, string $type, array $meta): Response
+    {
         try {
             $data = $dataFindMethod();
         } catch (Exception $exception) {
             return ApiHelper::createErrorResponse(
-                ApiHelper::INTERNAL_SERVER_ERROR, [$exception->getMessage()]);
+                ApiHelper::INTERNAL_SERVER_ERROR,
+                [$exception->getMessage()]
+            );
         }
         $outputDataRecords = [];
         foreach ($data as $record) {
-            switch ($type){
-                case self::USERS:{
+            switch ($type) {
+                case self::USERS:
+                {
                     $outputDataRecords[] = ApiHelper::userApiJsonSerialize($record);
                     break;
                 }
-                case self::NODES:{
+                case self::NODES:
+                {
                     $outputDataRecords[] = ApiHelper::nodeApiJsonSerialize($record);
                     break;
                 }
-                case self::ADDRESSES:{
+                case self::ADDRESSES:
+                {
                     $outputDataRecords[] = ApiHelper::addressApiJsonSerialize($record);
                     break;
                 }
             }
         }
         return ApiHelper::createSuccessResponse(
-            $outputDataRecords,ApiHelper::OK,$meta
+            $outputDataRecords,
+            ApiHelper::OK,
+            $meta
         );
     }
 
@@ -222,23 +248,27 @@ class ApiHelper
      * @param bool $is_public
      * @return array
      */
-    public static function getRecordsCount(string $type, int $id = 0, bool $is_public = false):array {
-        $metaCount=[
-            'count'=>0
+    public static function getRecordsCount(string $type, int $id = 0, bool $is_public = false): array
+    {
+        $metaCount = [
+            'count' => 0
         ];
-        switch ($type){
-            case self::USERS:{
+        switch ($type) {
+            case self::USERS:
+            {
                 $metaCount['count'] = Users::getAllCount();
                 break;
             }
-            case self::NODES:{
-                if ($is_public){
+            case self::NODES:
+            {
+                if ($is_public) {
                     $metaCount['count'] = Nodes::getAllPublicCount();
                 }
                 $metaCount['count'] = Nodes::getAllUserNodesCount($id);
                 break;
             }
-            case self::ADDRESSES:{
+            case self::ADDRESSES:
+            {
                 $metaCount['count'] = Addresses::getAllNodeAddressesCount($id);
                 break;
             }

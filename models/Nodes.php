@@ -2,23 +2,26 @@
 
 use Phalcon\Mvc\Model;
 
+/**
+ * Class Nodes
+ */
 class Nodes extends Model
 {
-    public $node_id;
-    public $user_id;
-    public $node_name;
-    public $node_last_name;
-    public $node_patronymic;
-    public $node_company;
-    public $node_phone;
-    public $node_email;
-    public $node_create_date;
-    public $node_update_date;
-    public $is_public;
+    public int $node_id;
+    public int $user_id;
+    public string $node_name;
+    public string $node_last_name;
+    public string $node_patronymic;
+    public string $node_company;
+    public string $node_phone;
+    public string $node_email;
+    public int $node_create_date;
+    public int $node_update_date;
+    public bool $is_public;
 
     /**
      * @param int $nodeId
-     * @return bool|array
+     * @return bool|Nodes
      */
     public static function findNodeById(int $nodeId)
     {
@@ -37,20 +40,18 @@ class Nodes extends Model
     public static function findNodesByUserId(int $userId)
     {
         if (isset($_GET['pageSize']) && isset($_GET['pageNum'])) {
-            if (is_numeric($_GET['pageSize']) && is_numeric($_GET['pageNum'])) {
-                $pageSize = (int)$_GET['pageSize'];
-                $pageNum = (int)$_GET['pageNum'];
-                $results = Nodes::find([
-                        'conditions' => 'user_id = :user_id:',
-                        'bind' => [
-                            'user_id' => $userId,
-                        ],
-                        'limit' => $pageSize,
-                        'offset' => ($pageNum - 1) * $pageSize]
-                );
-            } else {
-                return false;
-            }
+            $pageSize = (int)$_GET['pageSize'];
+            $pageNum = (int)$_GET['pageNum'];
+            $results = Nodes::find(
+                [
+                    'conditions' => 'user_id = :user_id:',
+                    'bind' => [
+                        'user_id' => $userId,
+                    ],
+                    'limit' => $pageSize,
+                    'offset' => ($pageNum - 1) * $pageSize
+                ]
+            );
         } else {
             $results = Nodes::findByUserId($userId);
         }
@@ -66,17 +67,15 @@ class Nodes extends Model
     public static function findPublicNodes()
     {
         if (isset($_GET['pageSize']) && isset($_GET['pageNum'])) {
-            if (is_numeric($_GET['pageSize']) && is_numeric($_GET['pageNum'])) {
-                $pageSize = (int)$_GET['pageSize'];
-                $pageNum = (int)$_GET['pageNum'];
-                $results = Nodes::find([
-                        'conditions' => 'is_public = true',
-                        'limit' => $pageSize,
-                        'offset' => ($pageNum - 1) * $pageSize]
-                );
-            } else {
-                return false;
-            }
+            $pageSize = (int)$_GET['pageSize'];
+            $pageNum = (int)$_GET['pageNum'];
+            $results = Nodes::find(
+                [
+                    'conditions' => 'is_public = true',
+                    'limit' => $pageSize,
+                    'offset' => ($pageNum - 1) * $pageSize
+                ]
+            );
         } else {
             $results = Nodes::findByIsPublic(true);
         }
@@ -89,7 +88,7 @@ class Nodes extends Model
     /**
      * @return int
      */
-    public static function getAllPublicCount():int
+    public static function getAllPublicCount(): int
     {
         $results = Nodes::findByIsPublic(true);
         if ($results) {
@@ -102,7 +101,7 @@ class Nodes extends Model
      * @param int $userId
      * @return int
      */
-    public static function getAllUserNodesCount(int $userId):int
+    public static function getAllUserNodesCount(int $userId): int
     {
         $results = Nodes::findByUserId($userId);
         if ($results) {
